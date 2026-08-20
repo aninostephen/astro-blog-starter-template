@@ -19,8 +19,14 @@ const { title, description, keywords = SITE_KEYWORDS, image = '/blog-placeholder
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
+
+<!-- Favicons -->
+<link rel="icon" type="image/x-icon" href="/fav/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="/fav/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/fav/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/fav/apple-touch-icon.png" />
+<link rel="manifest" href="/fav/site.webmanifest" />
 
 <!-- Font preloads -->
 <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
@@ -48,3 +54,7 @@ const { title, description, keywords = SITE_KEYWORDS, image = '/blog-placeholder
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114922059182975"
+     crossorigin="anonymous"></script>
