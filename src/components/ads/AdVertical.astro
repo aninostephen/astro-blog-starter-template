@@ -1,0 +1,67 @@
+---
+interface Props {
+	label?: string;
+	show?: boolean;
+}
+
+const { label = "160 × 600 Skyscraper", show = false } = Astro.props;
+---
+
+{show && (
+	<aside class="ad-sidebar">
+		<div class="ad-placeholder ad-side">
+			<span class="ad-tag">ADVERTISEMENT</span>
+			<span class="ad-size">{label}</span>
+		</div>
+	</aside>
+)}
+
+<style>
+	.ad-sidebar {
+		width: 160px;
+	}
+
+	.ad-placeholder {
+		background: #f8fafc;
+		border: 2px dashed #cbd5e1;
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: #94a3b8;
+		font-family: system-ui, -apple-system, sans-serif;
+		text-align: center;
+		padding: 0.5em;
+		user-select: none;
+		box-sizing: border-box;
+	}
+
+	.ad-placeholder .ad-tag {
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: #94a3b8;
+	}
+
+	.ad-placeholder .ad-size {
+		font-size: 0.8rem;
+		font-weight: 500;
+		color: #cbd5e1;
+		margin-top: 0.2em;
+	}
+
+	.ad-side {
+		width: 160px;
+		height: 600px;
+		position: sticky;
+		top: 1em;
+	}
+
+	@media (max-width: 1024px) {
+		.ad-sidebar {
+			display: none;
+		}
+	}
+</style>

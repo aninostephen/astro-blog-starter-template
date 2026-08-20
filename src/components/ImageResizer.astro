@@ -1,0 +1,1142 @@
+---
+// src/components/ImageResizer.astro
+---
+
+<div class="resizer-container">
+	<!-- Dropzone Area -->
+	<div id="dropzone" class="dropzone">
+		<input type="file" id="file-input" accept="image/*" class="file-input" />
+		<div class="dropzone-content">
+			<div class="upload-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+					<polyline points="17 8 12 3 7 8"></polyline>
+					<line x1="12" y1="3" x2="12" y2="15"></line>
+				</svg>
+			</div>
+			<h3>Drop your image here or <span class="browse-link">browse</span></h3>
+			<p class="dropzone-hint">Supports PNG, JPG, WebP, GIF, SVG, BMP</p>
+
+		</div>
+	</div>
+
+	<!-- Workspace Area (Hidden until image loaded) -->
+	<div id="workspace" class="workspace hidden">
+		<!-- Top Bar / File Info -->
+		<div class="file-info-bar">
+			<div class="file-details">
+				<div class="file-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+						<circle cx="8.5" cy="8.5" r="1.5"></circle>
+						<polyline points="21 15 16 10 5 21"></polyline>
+					</svg>
+				</div>
+				<div>
+					<h4 id="file-name">image.png</h4>
+					<p id="original-meta" class="meta-text">1920 × 1080 px • 2.4 MB</p>
+				</div>
+			</div>
+			<button id="change-image-btn" class="btn btn-secondary">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+				</svg>
+				Change Image
+			</button>
+		</div>
+
+		<!-- Main Workspace Grid -->
+		<div class="workspace-grid">
+			<!-- Left Panel: Controls -->
+			<div class="controls-panel card">
+				<h3 class="panel-title">Resize Settings</h3>
+
+				<!-- Dimension Inputs -->
+				<div class="control-group">
+					<label class="group-label">Dimensions (px)</label>
+					<div class="dimensions-wrapper">
+						<div class="input-field">
+							<label for="width-input">Width</label>
+							<div class="input-with-unit">
+								<input type="number" id="width-input" min="1" placeholder="Width" />
+								<span class="unit">px</span>
+							</div>
+						</div>
+
+						<button id="lock-aspect-btn" class="lock-btn active" title="Maintain Aspect Ratio">
+							<svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+								<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+							</svg>
+							<svg id="unlock-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+								<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+							</svg>
+						</button>
+
+						<div class="input-field">
+							<label for="height-input">Height</label>
+							<div class="input-with-unit">
+								<input type="number" id="height-input" min="1" placeholder="Height" />
+								<span class="unit">px</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Quick Scale Presets -->
+				<div class="control-group">
+					<label class="group-label">Quick Presets</label>
+					<div class="presets-row">
+						<button class="preset-btn" data-scale="0.25">25%</button>
+						<button class="preset-btn" data-scale="0.5">50%</button>
+						<button class="preset-btn" data-scale="0.75">75%</button>
+						<button class="preset-btn active" data-scale="1">100%</button>
+						<button class="preset-btn" data-scale="1.5" id="preset-150">150%</button>
+						<button class="preset-btn" data-scale="2" id="preset-200">200%</button>
+					</div>
+				</div>
+
+				<!-- Options Toggles -->
+				<div class="control-group">
+					<label class="group-label">Options</label>
+					<div class="toggle-option">
+						<label class="switch-container">
+							<input type="checkbox" id="enlarge-toggle" checked />
+							<span class="switch-slider"></span>
+						</label>
+						<div class="toggle-text">
+							<span class="toggle-title">Do not enlarge if smaller</span>
+							<span class="toggle-desc">Prevents output dimensions from exceeding the original image size</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Export Format & Quality -->
+				<div class="control-group">
+					<label class="group-label">Export Format</label>
+					<div class="format-quality-row">
+						<div class="input-field format-field">
+							<select id="format-select">
+								<option value="image/png">PNG</option>
+								<option value="image/jpeg">JPEG</option>
+								<option value="image/webp">WebP</option>
+							</select>
+						</div>
+						<div id="quality-container" class="quality-field hidden">
+							<div class="quality-header">
+								<label for="quality-range">Quality</label>
+								<span id="quality-val">90%</span>
+							</div>
+							<input type="range" id="quality-range" min="10" max="100" value="90" />
+						</div>
+					</div>
+				</div>
+
+				<!-- Action Buttons -->
+				<div class="actions-group">
+					<button id="reset-btn" class="btn btn-tertiary">Reset</button>
+					<button id="download-btn" class="btn btn-primary btn-large">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+							<polyline points="7 10 12 15 17 10"></polyline>
+							<line x1="12" y1="15" x2="12" y2="3"></line>
+						</svg>
+						Resize & Download
+					</button>
+				</div>
+			</div>
+
+			<!-- Right Panel: Preview -->
+			<div class="preview-panel card">
+				<h3 class="panel-title">Preview</h3>
+				<div class="preview-stage">
+					<div id="preview-loader" class="preview-loader hidden">
+						<div class="spinner"></div>
+						<span>Rendering preview...</span>
+					</div>
+					<div class="img-wrapper">
+						<img id="preview-img" alt="Resized image preview" />
+					</div>
+				</div>
+				<!-- Summary Cards -->
+				<div class="summary-cards">
+					<div class="summary-card">
+						<span class="summary-label">Target Size</span>
+						<span id="target-dimensions-badge" class="summary-value">0 × 0 px</span>
+					</div>
+					<div class="summary-card">
+						<span class="summary-label">Aspect Ratio</span>
+						<span id="target-ratio-badge" class="summary-value">1:1</span>
+					</div>
+					<div class="summary-card">
+						<span class="summary-label">Est. File Size</span>
+						<span id="target-size-badge" class="summary-value">Calculating...</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Canvas for hidden processing -->
+	<canvas id="process-canvas" style="display: none;"></canvas>
+</div>
+
+<style>
+	:root {
+		--primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+		--primary-hover: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+		--surface-card: #ffffff;
+		--surface-bg: #f8fafc;
+		--border-color: #e2e8f0;
+		--text-main: #0f172a;
+		--text-muted: #64748b;
+		--accent-light: #e0e7ff;
+		--accent-color: #4f46e5;
+		--radius-lg: 16px;
+		--radius-md: 10px;
+		--radius-sm: 6px;
+		--shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+	}
+
+	.resizer-container {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+		font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	}
+
+	/* Dropzone */
+	.dropzone {
+		position: relative;
+		border: 2px dashed #cbd5e1;
+		border-radius: var(--radius-lg);
+		background: #ffffff;
+		padding: 4em 2em;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: var(--shadow-card);
+	}
+
+	.dropzone:hover, .dropzone.drag-over {
+		border-color: var(--accent-color);
+		background: #f5f3ff;
+		transform: translateY(-2px);
+	}
+
+	.file-input {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	.upload-icon {
+		width: 80px;
+		height: 80px;
+		margin: 0 auto 1.5em;
+		background: #eef2ff;
+		color: var(--accent-color);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: transform 0.3s ease;
+	}
+
+	.dropzone:hover .upload-icon {
+		transform: scale(1.1);
+	}
+
+	.dropzone h3 {
+		font-size: 1.35rem;
+		color: var(--text-main);
+		margin: 0 0 0.5em;
+		font-weight: 600;
+	}
+
+	.browse-link {
+		color: var(--accent-color);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.dropzone-hint {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		margin: 0;
+	}
+
+	/* Workspace */
+	.workspace {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5em;
+		animation: fadeIn 0.3s ease-out;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(8px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	/* File Info Bar */
+	.file-info-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: #ffffff;
+		padding: 1em 1.5em;
+		border-radius: var(--radius-md);
+		border: 1px solid var(--border-color);
+		box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+	}
+
+	.file-details {
+		display: flex;
+		align-items: center;
+		gap: 1em;
+	}
+
+	.file-icon {
+		width: 42px;
+		height: 42px;
+		border-radius: var(--radius-sm);
+		background: #e0e7ff;
+		color: var(--accent-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.file-details h4 {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--text-main);
+	}
+
+	.meta-text {
+		margin: 0.2em 0 0;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+	}
+
+	/* Workspace Grid */
+	.workspace-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5em;
+	}
+
+	@media (max-width: 840px) {
+		.workspace-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.card {
+		background: #ffffff;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--border-color);
+		padding: 1.5em;
+		box-shadow: var(--shadow-card);
+		display: flex;
+		flex-direction: column;
+		gap: 1.25em;
+	}
+
+	.panel-title {
+		margin: 0 0 0.5em;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--text-main);
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 0.6em;
+	}
+
+	.control-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5em;
+	}
+
+	.group-label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		color: var(--text-muted);
+	}
+
+	/* Dimensions Inputs */
+	.dimensions-wrapper {
+		display: flex;
+		align-items: flex-end;
+		gap: 0.75em;
+	}
+
+	.input-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3em;
+		flex: 1;
+	}
+
+	.input-field label {
+		font-size: 0.85rem;
+		color: var(--text-main);
+		font-weight: 500;
+	}
+
+	.input-with-unit {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.input-with-unit input, .format-field select {
+		width: 100%;
+		padding: 0.65em 2.2em 0.65em 0.85em;
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-sm);
+		font-size: 0.95rem;
+		font-weight: 500;
+		color: var(--text-main);
+		background: #f8fafc;
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+
+	.format-field select {
+		padding-right: 0.85em;
+		cursor: pointer;
+	}
+
+	.input-with-unit input:focus, .format-field select:focus {
+		outline: none;
+		border-color: var(--accent-color);
+		background: #ffffff;
+		box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+	}
+
+	.unit {
+		position: absolute;
+		right: 0.75em;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		pointer-events: none;
+	}
+
+	/* Lock Button */
+	.lock-btn {
+		height: 42px;
+		width: 42px;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border-color);
+		background: #f8fafc;
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.lock-btn.active {
+		background: #e0e7ff;
+		color: var(--accent-color);
+		border-color: #c7d2fe;
+	}
+
+	.lock-btn:hover {
+		transform: scale(1.05);
+	}
+
+	/* Presets */
+	.presets-row {
+		display: grid;
+		grid-template-columns: repeat(6, 1fr);
+		gap: 0.4em;
+	}
+
+	.preset-btn {
+		padding: 0.5em 0;
+		border: 1px solid var(--border-color);
+		background: #f8fafc;
+		border-radius: var(--radius-sm);
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-main);
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.preset-btn:hover {
+		background: #edf2f7;
+	}
+
+	.preset-btn.active {
+		background: var(--accent-color);
+		color: #ffffff;
+		border-color: var(--accent-color);
+	}
+
+	.preset-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	/* Toggle switch */
+	.toggle-option {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75em;
+		padding: 0.75em;
+		background: #f8fafc;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border-color);
+	}
+
+	.switch-container {
+		position: relative;
+		display: inline-block;
+		width: 40px;
+		height: 22px;
+		flex-shrink: 0;
+		margin-top: 2px;
+	}
+
+	.switch-container input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.switch-slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background-color: #cbd5e1;
+		transition: .25s;
+		border-radius: 22px;
+	}
+
+	.switch-slider:before {
+		position: absolute;
+		content: "";
+		height: 16px;
+		width: 16px;
+		left: 3px;
+		bottom: 3px;
+		background-color: white;
+		transition: .25s;
+		border-radius: 50%;
+	}
+
+	input:checked + .switch-slider {
+		background-color: var(--accent-color);
+	}
+
+	input:checked + .switch-slider:before {
+		transform: translateX(18px);
+	}
+
+	.toggle-text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.toggle-title {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--text-main);
+	}
+
+	.toggle-desc {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+	}
+
+	/* Format & Quality */
+	.format-quality-row {
+		display: flex;
+		gap: 1em;
+		align-items: center;
+	}
+
+	.quality-field {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4em;
+	}
+
+	.quality-header {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.85rem;
+		color: var(--text-main);
+		font-weight: 500;
+	}
+
+	/* Action Buttons */
+	.actions-group {
+		display: flex;
+		gap: 0.75em;
+		margin-top: 0.5em;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5em;
+		padding: 0.65em 1.25em;
+		border-radius: var(--radius-sm);
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		border: none;
+	}
+
+	.btn-primary {
+		background: var(--primary-gradient);
+		color: white;
+		box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+	}
+
+	.btn-primary:hover {
+		background: var(--primary-hover);
+		box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+		transform: translateY(-1px);
+	}
+
+	.btn-secondary {
+		background: #f1f5f9;
+		color: var(--text-main);
+		border: 1px solid var(--border-color);
+	}
+
+	.btn-secondary:hover {
+		background: #e2e8f0;
+	}
+
+	.btn-tertiary {
+		background: transparent;
+		color: var(--text-muted);
+		border: 1px solid var(--border-color);
+	}
+
+	.btn-tertiary:hover {
+		background: #f1f5f9;
+		color: var(--text-main);
+	}
+
+	.btn-large {
+		flex: 1;
+		padding: 0.8em 1.5em;
+	}
+
+	.btn-sm {
+		padding: 0.4em 0.85em;
+		font-size: 0.85rem;
+	}
+
+
+
+	/* Preview Panel */
+	.preview-stage {
+		flex: 1;
+		min-height: 260px;
+		background: #0f172a;
+		border-radius: var(--radius-sm);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		position: relative;
+		background-image: radial-gradient(#334155 1px, transparent 1px);
+		background-size: 16px 16px;
+	}
+
+	.preview-loader {
+		position: absolute;
+		inset: 0;
+		background: rgba(15, 23, 42, 0.65);
+		backdrop-filter: blur(4px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6em;
+		color: #ffffff;
+		font-size: 0.85rem;
+		font-weight: 500;
+		z-index: 10;
+		transition: opacity 0.2s ease;
+	}
+
+	.preview-loader.hidden {
+		display: none;
+	}
+
+	.spinner {
+		width: 28px;
+		height: 28px;
+		border: 3px solid rgba(255, 255, 255, 0.2);
+		border-top-color: var(--accent-color, #6366f1);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.img-wrapper {
+		max-width: 100%;
+		max-height: 280px;
+		padding: 1em;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.img-wrapper img {
+		max-width: 100%;
+		max-height: 260px;
+		object-fit: contain;
+		border-radius: 4px;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	}
+
+	/* Summary Cards */
+	.summary-cards {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.75em;
+	}
+
+	.summary-card {
+		background: #f8fafc;
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-sm);
+		padding: 0.75em 0.5em;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
+	}
+
+	.summary-label {
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.summary-value {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--text-main);
+	}
+</style>
+
+<script>
+	// Image Resizer Client-side Logic
+	document.addEventListener('DOMContentLoaded', () => {
+		const dropzone = document.getElementById('dropzone') as HTMLDivElement;
+		const fileInput = document.getElementById('file-input') as HTMLInputElement;
+		const workspace = document.getElementById('workspace') as HTMLDivElement;
+
+		const fileNameEl = document.getElementById('file-name') as HTMLHeadingElement;
+		const originalMetaEl = document.getElementById('original-meta') as HTMLParagraphElement;
+		const changeImageBtn = document.getElementById('change-image-btn') as HTMLButtonElement;
+
+
+		const widthInput = document.getElementById('width-input') as HTMLInputElement;
+		const heightInput = document.getElementById('height-input') as HTMLInputElement;
+		const lockAspectBtn = document.getElementById('lock-aspect-btn') as HTMLButtonElement;
+		const lockIcon = document.querySelector('#lock-icon') as SVGElement;
+		const unlockIcon = document.querySelector('#unlock-icon') as SVGElement;
+
+		const enlargeToggle = document.getElementById('enlarge-toggle') as HTMLInputElement;
+		const presetBtns = document.querySelectorAll('.preset-btn') as NodeListOf<HTMLButtonElement>;
+
+		const formatSelect = document.getElementById('format-select') as unknown as HTMLSelectElement;
+		const qualityContainer = document.getElementById('quality-container') as HTMLDivElement;
+		const qualityRange = document.getElementById('quality-range') as HTMLInputElement;
+		const qualityVal = document.getElementById('quality-val') as HTMLSpanElement;
+
+		const resetBtn = document.getElementById('reset-btn') as HTMLButtonElement;
+		const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
+
+		const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+		const previewLoader = document.getElementById('preview-loader') as HTMLDivElement;
+		const targetDimensionsBadge = document.getElementById('target-dimensions-badge') as HTMLSpanElement;
+		const targetRatioBadge = document.getElementById('target-ratio-badge') as HTMLSpanElement;
+		const targetSizeBadge = document.getElementById('target-size-badge') as HTMLSpanElement;
+
+		const canvas = document.getElementById('process-canvas') as HTMLCanvasElement;
+		const ctx = canvas.getContext('2d');
+
+		// State Variables
+		let loadedImage: HTMLImageElement | null = null;
+		let originalWidth = 0;
+		let originalHeight = 0;
+		let originalAspectRatio = 1;
+		let originalFileName = 'image.png';
+		let originalFileSize = 0;
+		let isAspectLocked = true;
+
+		// Utility: format file size
+		function formatBytes(bytes: number): string {
+			if (bytes === 0) return '0 Bytes';
+			const k = 1024;
+			const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		}
+
+		// Drag and Drop handlers
+		['dragenter', 'dragover'].forEach(eventName => {
+			dropzone.addEventListener(eventName, (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				dropzone.classList.add('drag-over');
+			});
+		});
+
+		['dragleave', 'drop'].forEach(eventName => {
+			dropzone.addEventListener(eventName, (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				dropzone.classList.remove('drag-over');
+			});
+		});
+
+		dropzone.addEventListener('drop', (e) => {
+			const files = e.dataTransfer?.files;
+			if (files && files.length > 0) {
+				handleFileSelect(files[0]);
+			}
+		});
+
+		fileInput.addEventListener('change', (e) => {
+			const target = e.target as HTMLInputElement;
+			if (target.files && target.files.length > 0) {
+				handleFileSelect(target.files[0]);
+			}
+		});
+
+		changeImageBtn.addEventListener('click', () => {
+			fileInput.value = '';
+			workspace.classList.add('hidden');
+			dropzone.classList.remove('hidden');
+		});
+
+		// File load handler
+		function handleFileSelect(file: File) {
+			if (!file.type.startsWith('image/')) {
+				alert('Please upload a valid image file.');
+				return;
+			}
+
+			originalFileName = file.name;
+			originalFileSize = file.size;
+
+			const reader = new FileReader();
+			reader.onload = (event) => {
+				const img = new Image();
+				img.onload = () => {
+					loadedImage = img;
+					originalWidth = img.width;
+					originalHeight = img.height;
+					originalAspectRatio = originalWidth / originalHeight;
+
+					// Update File Info
+					fileNameEl.textContent = originalFileName;
+					originalMetaEl.textContent = `${originalWidth} × ${originalHeight} px • ${formatBytes(originalFileSize)}`;
+
+					// Populate inputs
+					widthInput.value = originalWidth.toString();
+					heightInput.value = originalHeight.toString();
+
+					// Show workspace
+					dropzone.classList.add('hidden');
+					workspace.classList.remove('hidden');
+
+					updateEnlargePresetStates();
+					updatePreview();
+				};
+				img.src = event.target?.result as string;
+			};
+			reader.readAsDataURL(file);
+		}
+
+		// Aspect Ratio Lock Toggle
+		lockAspectBtn.addEventListener('click', () => {
+			isAspectLocked = !isAspectLocked;
+			lockAspectBtn.classList.toggle('active', isAspectLocked);
+			lockIcon.classList.toggle('hidden', !isAspectLocked);
+			unlockIcon.classList.toggle('hidden', isAspectLocked);
+
+			if (isAspectLocked && loadedImage) {
+				// Re-sync height based on current width
+				syncHeightFromWidth();
+				updatePreview();
+			}
+		});
+
+		// Dimension Input Handlers
+		widthInput.addEventListener('input', () => {
+			enforceMaxDimensionsIfNeeded('width');
+			if (isAspectLocked) {
+				syncHeightFromWidth();
+			}
+			updateActivePresetButton();
+			updatePreview();
+		});
+
+		heightInput.addEventListener('input', () => {
+			enforceMaxDimensionsIfNeeded('height');
+			if (isAspectLocked) {
+				syncWidthFromHeight();
+			}
+			updateActivePresetButton();
+			updatePreview();
+		});
+
+		// Helper to sync dimensions
+		function syncHeightFromWidth() {
+			const currentWidth = parseInt(widthInput.value) || 0;
+			if (currentWidth > 0 && originalAspectRatio > 0) {
+				let calcHeight = Math.round(currentWidth / originalAspectRatio);
+				if (enlargeToggle.checked && calcHeight > originalHeight) {
+					calcHeight = originalHeight;
+				}
+				heightInput.value = calcHeight.toString();
+			}
+		}
+
+		function syncWidthFromHeight() {
+			const currentHeight = parseInt(heightInput.value) || 0;
+			if (currentHeight > 0 && originalAspectRatio > 0) {
+				let calcWidth = Math.round(currentHeight * originalAspectRatio);
+				if (enlargeToggle.checked && calcWidth > originalWidth) {
+					calcWidth = originalWidth;
+				}
+				widthInput.value = calcWidth.toString();
+			}
+		}
+
+		// Enforce "Do Not Enlarge If Smaller" rule
+		function enforceMaxDimensionsIfNeeded(changedSource: 'width' | 'height') {
+			if (!enlargeToggle.checked) return;
+
+			let currentW = parseInt(widthInput.value) || 0;
+			let currentH = parseInt(heightInput.value) || 0;
+
+			if (changedSource === 'width' && currentW > originalWidth) {
+				widthInput.value = originalWidth.toString();
+			} else if (changedSource === 'height' && currentH > originalHeight) {
+				heightInput.value = originalHeight.toString();
+			}
+		}
+
+		// Toggle "Do Not Enlarge" Listener
+		enlargeToggle.addEventListener('change', () => {
+			updateEnlargePresetStates();
+			if (enlargeToggle.checked) {
+				let currentW = parseInt(widthInput.value) || 0;
+				let currentH = parseInt(heightInput.value) || 0;
+				if (currentW > originalWidth || currentH > originalHeight) {
+					widthInput.value = originalWidth.toString();
+					if (isAspectLocked) {
+						syncHeightFromWidth();
+					} else if (currentH > originalHeight) {
+						heightInput.value = originalHeight.toString();
+					}
+					updatePreview();
+				}
+			}
+		});
+
+		function updateEnlargePresetStates() {
+			const doNotEnlarge = enlargeToggle.checked;
+			presetBtns.forEach(btn => {
+				const scale = parseFloat(btn.dataset.scale || '1');
+				if (doNotEnlarge && scale > 1) {
+					btn.disabled = true;
+					btn.title = "Enlarging is disabled because 'Do not enlarge if smaller' is active";
+				} else {
+					btn.disabled = false;
+					btn.title = "";
+				}
+			});
+		}
+
+		// Presets Handlers
+		presetBtns.forEach(btn => {
+			btn.addEventListener('click', () => {
+				if (btn.disabled) return;
+				const scale = parseFloat(btn.dataset.scale || '1');
+
+				presetBtns.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+
+				let targetW = Math.round(originalWidth * scale);
+				let targetH = Math.round(originalHeight * scale);
+
+				if (enlargeToggle.checked) {
+					if (targetW > originalWidth) targetW = originalWidth;
+					if (targetH > originalHeight) targetH = originalHeight;
+				}
+
+				widthInput.value = targetW.toString();
+				heightInput.value = targetH.toString();
+				updatePreview();
+			});
+		});
+
+		function updateActivePresetButton() {
+			const currentW = parseInt(widthInput.value) || 0;
+			presetBtns.forEach(b => b.classList.remove('active'));
+			if (originalWidth > 0) {
+				const currentScale = currentW / originalWidth;
+				presetBtns.forEach(btn => {
+					const scale = parseFloat(btn.dataset.scale || '0');
+					if (Math.abs(scale - currentScale) < 0.02) {
+						btn.classList.add('active');
+					}
+				});
+			}
+		}
+
+		// Format & Quality Controls
+		formatSelect.addEventListener('change', () => {
+			const val = formatSelect.value;
+			if (val === 'image/jpeg' || val === 'image/webp') {
+				qualityContainer.classList.remove('hidden');
+			} else {
+				qualityContainer.classList.add('hidden');
+			}
+			updatePreview();
+		});
+
+		qualityRange.addEventListener('input', () => {
+			qualityVal.textContent = `${qualityRange.value}%`;
+			updatePreview();
+		});
+
+		// Reset Button
+		resetBtn.addEventListener('click', () => {
+			widthInput.value = originalWidth.toString();
+			heightInput.value = originalHeight.toString();
+			isAspectLocked = true;
+			lockAspectBtn.classList.add('active');
+			lockIcon.classList.remove('hidden');
+			unlockIcon.classList.add('hidden');
+			enlargeToggle.checked = true;
+			updateEnlargePresetStates();
+			updateActivePresetButton();
+			updatePreview();
+		});
+
+		// Live Preview & Render Logic
+		let previewTimeout: number | undefined;
+
+		function updatePreview() {
+			if (!loadedImage || !ctx) return;
+
+			const targetW = parseInt(widthInput.value) || 1;
+			const targetH = parseInt(heightInput.value) || 1;
+
+			// Update Badges
+			targetDimensionsBadge.textContent = `${targetW} × ${targetH} px`;
+
+			const gcdVal = gcd(targetW, targetH);
+			const ratioW = Math.round(targetW / gcdVal);
+			const ratioH = Math.round(targetH / gcdVal);
+			targetRatioBadge.textContent = (ratioW < 100 && ratioH < 100) ? `${ratioW}:${ratioH}` : `${(targetW/targetH).toFixed(2)}:1`;
+
+			// Show real-time loading state
+			previewLoader?.classList.remove('hidden');
+			targetSizeBadge.textContent = 'Updating...';
+
+			// Debounce canvas rendering for smooth responsiveness
+			window.clearTimeout(previewTimeout);
+			previewTimeout = window.setTimeout(() => {
+				renderCanvas(targetW, targetH, (blob) => {
+					if (blob) {
+						previewImg.src = URL.createObjectURL(blob);
+						targetSizeBadge.textContent = formatBytes(blob.size);
+					}
+					previewLoader?.classList.add('hidden');
+				});
+			}, 100);
+		}
+
+		function gcd(a: number, b: number): number {
+			return b === 0 ? a : gcd(b, a % b);
+		}
+
+		function renderCanvas(targetW: number, targetH: number, callback: (blob: Blob | null) => void) {
+			if (!loadedImage || !ctx) return;
+
+			canvas.width = targetW;
+			canvas.height = targetH;
+
+			ctx.imageSmoothingEnabled = true;
+			ctx.imageSmoothingQuality = 'high';
+			ctx.clearRect(0, 0, targetW, targetH);
+			ctx.drawImage(loadedImage, 0, 0, targetW, targetH);
+
+			const mimeType = formatSelect.value;
+			const quality = parseInt(qualityRange.value) / 100;
+
+			canvas.toBlob((blob) => {
+				callback(blob);
+			}, mimeType, quality);
+		}
+
+		// Download Handler
+		downloadBtn.addEventListener('click', () => {
+			if (!loadedImage) return;
+
+			const targetW = parseInt(widthInput.value) || originalWidth;
+			const targetH = parseInt(heightInput.value) || originalHeight;
+
+			renderCanvas(targetW, targetH, (blob) => {
+				if (!blob) return;
+
+				const mimeType = formatSelect.value;
+				let ext = 'png';
+				if (mimeType === 'image/jpeg') ext = 'jpg';
+				else if (mimeType === 'image/webp') ext = 'webp';
+
+				const nameWithoutExt = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
+				const downloadName = `${nameWithoutExt}_resized_${targetW}x${targetH}.${ext}`;
+
+				const link = document.createElement('a');
+				link.download = downloadName;
+				link.href = URL.createObjectURL(blob);
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			});
+		});
+	});
+</script>
