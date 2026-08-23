@@ -1,6 +1,7 @@
 ---
 const today = new Date();
 import { SITE_TITLE } from "../consts";
+import CookieConsent from "./CookieConsent.astro";
 ---
 
 <footer>
@@ -12,12 +13,26 @@ import { SITE_TITLE } from "../consts";
 			width="32"
 			height="32"
 		/>
-		<span class="footer-title">{SITE_TITLE}</span>
+		<span class="footer-title">ResizeForge</span>
+	</div>
+	<div class="footer-links">
+		<a href="/">Home</a>
+		<a href="/about">About Us</a>
+		<a href="/contact">Contact</a>
+		<a href="/privacy">Privacy Policy</a>
+		<a href="/terms">Terms of Service</a>
+		<a
+			href="#"
+			onclick="document.getElementById('cookie-consent-banner').classList.remove('hidden'); setTimeout(() => document.getElementById('cookie-consent-banner').classList.add('show'), 100); return false;"
+			>Cookie Settings</a
+		>
 	</div>
 	<p class="copyright">
 		&copy; {today.getFullYear()} ResizeForge. All rights reserved.
 	</p>
 </footer>
+
+<CookieConsent />
 <style>
 	footer {
 		padding: 2em 1em 2em 1em;
@@ -46,6 +61,22 @@ import { SITE_TITLE } from "../consts";
 		font-weight: 700;
 		font-size: 1.1rem;
 		color: var(--text-main, #0f172a);
+	}
+	.footer-links {
+		display: flex;
+		gap: 1.5em;
+		flex-wrap: wrap;
+		justify-content: center;
+		margin: 0.5em 0;
+	}
+	.footer-links a {
+		color: var(--text-muted, #64748b);
+		text-decoration: none;
+		font-size: 0.95rem;
+		transition: color 0.2s ease;
+	}
+	.footer-links a:hover {
+		color: var(--primary, #4f46e5);
 	}
 	.copyright {
 		margin: 0;

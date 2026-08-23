@@ -1,0 +1,46 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead
+			title={`Contact | ${SITE_TITLE}`}
+			description="Contact us for any questions or support."
+		/>
+		<style>
+			main {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: 0 auto;
+				padding: 3em 1em;
+			}
+			h1 {
+				margin-bottom: 0.5em;
+			}
+			p {
+				line-height: 1.6;
+				color: var(--gray-dark, #333);
+				margin-bottom: 1.5em;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Contact Us</h1>
+			<p>
+				If you have any questions, feedback, or need support regarding
+				ResizeForge, please feel free to reach out to us at <strong
+					>support@resizeforge.online</strong
+				>.
+			</p>
+			<p>We aim to respond to all inquiries within 24-48 hours.</p>
+		</main>
+		<Footer />
+	</body>
+</html>
