@@ -14,7 +14,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 		/>
 		<style>
 			main {
-				width: 720px;
+				width: 760px;
 				max-width: calc(100% - 2em);
 				margin: 0 auto;
 				padding: 3em 1em;
@@ -22,10 +22,46 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 			h1 {
 				margin-bottom: 0.5em;
 			}
+			h2 {
+				font-size: 1.4rem;
+				margin-top: 1.75em;
+				margin-bottom: 0.5em;
+			}
 			p {
 				line-height: 1.6;
 				color: var(--gray-dark, #333);
+				margin-bottom: 1.25em;
+			}
+			.contact-card {
+				background: #f8fafc;
+				border: 1px solid #e2e8f0;
+				border-radius: 12px;
+				padding: 1.5rem;
+				margin: 1.5rem 0;
+			}
+			.contact-card h3 {
+				margin-top: 0;
+				font-size: 1.15rem;
+				color: #0f172a;
+			}
+			.email-box {
+				display: inline-block;
+				background: #eef2ff;
+				color: #4f46e5;
+				font-weight: 700;
+				padding: 0.5rem 1rem;
+				border-radius: 8px;
+				font-size: 1.05rem;
+				text-decoration: none;
+				margin: 0.5rem 0;
+			}
+			.inquiry-list {
+				padding-left: 1.25em;
 				margin-bottom: 1.5em;
+			}
+			.inquiry-list li {
+				margin-bottom: 0.6em;
+				line-height: 1.5;
 			}
 		</style>
 	</head>
@@ -34,13 +70,32 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 		<main>
 			<h1>Contact Us</h1>
 			<p>
-				If you have any questions, feedback, or need support regarding
-				ResizeForge, please feel free to reach out to us at <strong
-					>support@resizeforge.online</strong
-				>.
+				Have a question, feedback, or need assistance with ResizeForge? We value your input and are here to help make your image processing experience as fast and smooth as possible.
 			</p>
-			<p>We aim to respond to all inquiries within 24-48 hours.</p>
+
+			<div class="contact-card">
+				<h3>Direct Email Support</h3>
+				<p>For all inquiries, please email our support team directly at:</p>
+				<a href="mailto:support@resizeforge.online" class="email-box">support@resizeforge.online</a>
+				<p style="margin-top: 0.75rem; font-size: 0.9rem; color: #64748b;">
+					We review all incoming emails and typically respond within 24 to 48 business hours (Monday – Friday).
+				</p>
+			</div>
+
+			<h2>What We Can Assist You With</h2>
+			<ul class="inquiry-list">
+				<li><strong>Technical Issues & Bug Reports:</strong> If you encountered an issue resizing or converting a specific image file, please let us know the file format and browser you were using.</li>
+				<li><strong>Feature Suggestions:</strong> Ideas for new image editing tools, additional preset dimensions, or batch features you'd like to see on ResizeForge.</li>
+				<li><strong>Advertising & Partnerships:</strong> For advertising inquiries, business collaborations, or press opportunities.</li>
+				<li><strong>Privacy Inquiries:</strong> Any questions regarding our client-side architecture and data handling practices.</li>
+			</ul>
+
+			<h2>Frequently Asked Quick Answers</h2>
+			<p>
+				Looking for quick answers? You can learn more about how our in-browser technology handles your files on our <a href="/about">About page</a> or review our legal policies on our <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms of Service</a> pages.
+			</p>
 		</main>
 		<Footer />
 	</body>
 </html>
+
