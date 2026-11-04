@@ -21,11 +21,30 @@ import { SITE_TITLE } from "../consts";
 			<HeaderLink href="/">Resizer</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
 			<HeaderLink href="/contact">Contact</HeaderLink>
+			<div class="bmc-wrapper">
+				<script
+					is:inline
+					type="text/javascript"
+					src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+					data-name="bmc-button"
+					data-slug="aninostephen"
+					data-color="#5F7FFF"
+					data-emoji="☕"
+					data-font="Cookie"
+					data-text="Buy me a coffee"
+					data-outline-color="#000000"
+					data-font-color="#ffffff"
+					data-coffee-color="#FFDD00"
+				></script>
+			</div>
 		</div>
 	</nav>
 </header>
 <style>
 	header {
+		position: sticky;
+		top: 0;
+		z-index: 1000;
 		margin: 0;
 		padding: 0 1em;
 		background: white;
@@ -61,6 +80,14 @@ import { SITE_TITLE } from "../consts";
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.25em 0.5em;
+	}
+	.internal-links {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.25em;
 	}
 	nav a {
 		padding: 0.3em 0.5em;
@@ -73,5 +100,34 @@ import { SITE_TITLE } from "../consts";
 	nav a.active {
 		text-decoration: none;
 		border-bottom-color: var(--accent);
+	}
+	.bmc-wrapper {
+		display: inline-flex;
+		align-items: center;
+		margin-left: 0.4em;
+	}
+	.bmc-wrapper :global(.bmc-btn-container) {
+		display: inline-flex;
+		align-items: center;
+	}
+	.bmc-wrapper :global(.bmc-btn) {
+		height: 36px !important;
+		min-width: unset !important;
+		padding: 0 12px !important;
+		font-size: 21px !important;
+		line-height: 1 !important;
+		border-radius: 8px !important;
+		color: #ffffff !important;
+	}
+	.bmc-wrapper :global(.bmc-btn:hover) {
+		color: #ffffff !important;
+	}
+	.bmc-wrapper :global(.bmc-btn-text) {
+		font-size: 21px !important;
+		line-height: 1 !important;
+	}
+	.bmc-wrapper :global(.bmc-btn svg) {
+		height: 20px !important;
+		width: auto !important;
 	}
 </style>
