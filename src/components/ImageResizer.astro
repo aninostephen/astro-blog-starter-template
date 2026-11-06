@@ -1,5 +1,6 @@
 ---
 // src/components/ImageResizer.astro
+import 'cropperjs/dist/cropper.css';
 ---
 
 <div class="resizer-container">
@@ -37,120 +38,220 @@
 					<p id="original-meta" class="meta-text">1920 × 1080 px • 2.4 MB</p>
 				</div>
 			</div>
-			<button id="change-image-btn" class="btn btn-secondary">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-				</svg>
-				Change Image
-			</button>
+			<div class="file-actions">
+				<button id="open-crop-btn" class="btn btn-secondary" title="Crop Image">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
+						<path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
+					</svg>
+					Crop
+				</button>
+				<button id="revert-original-btn" class="btn btn-tertiary hidden" title="Revert to original uncropped image">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+						<path d="M3 3v5h5"></path>
+					</svg>
+					Revert
+				</button>
+				<button id="change-image-btn" class="btn btn-secondary">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+					</svg>
+					Change Image
+				</button>
+			</div>
 		</div>
 
 		<!-- Main Workspace Grid -->
 		<div class="workspace-grid">
 			<!-- Left Panel: Controls -->
 			<div class="controls-panel card">
-				<h3 class="panel-title">Resize Settings</h3>
+				<!-- Resize Controls Mode -->
+				<div id="resize-controls" class="resize-controls">
+					<h3 class="panel-title">Resize Settings</h3>
 
-				<!-- Dimension Inputs -->
-				<div class="control-group">
-					<label class="group-label">Dimensions (px)</label>
-					<div class="dimensions-wrapper">
-						<div class="input-field">
-							<label for="width-input">Width</label>
-							<div class="input-with-unit">
-								<input type="number" id="width-input" min="1" placeholder="Width" />
-								<span class="unit">px</span>
+					<!-- Dimension Inputs -->
+					<div class="control-group">
+						<label class="group-label">Dimensions (px)</label>
+						<div class="dimensions-wrapper">
+							<div class="input-field">
+								<label for="width-input">Width</label>
+								<div class="input-with-unit">
+									<input type="number" id="width-input" min="1" placeholder="Width" />
+									<span class="unit">px</span>
+								</div>
+							</div>
+
+							<button id="lock-aspect-btn" class="lock-btn active" title="Maintain Aspect Ratio">
+								<svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+									<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+								</svg>
+								<svg id="unlock-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+									<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+								</svg>
+							</button>
+
+							<div class="input-field">
+								<label for="height-input">Height</label>
+								<div class="input-with-unit">
+									<input type="number" id="height-input" min="1" placeholder="Height" />
+									<span class="unit">px</span>
+								</div>
 							</div>
 						</div>
+					</div>
 
-						<button id="lock-aspect-btn" class="lock-btn active" title="Maintain Aspect Ratio">
-							<svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-								<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+					<!-- Quick Scale Presets -->
+					<div class="control-group">
+						<label class="group-label">Quick Presets</label>
+						<div class="presets-row">
+							<button class="preset-btn" data-scale="0.25">25%</button>
+							<button class="preset-btn" data-scale="0.5">50%</button>
+							<button class="preset-btn" data-scale="0.75">75%</button>
+							<button class="preset-btn active" data-scale="1">100%</button>
+							<button class="preset-btn" data-scale="1.5" id="preset-150">150%</button>
+							<button class="preset-btn" data-scale="2" id="preset-200">200%</button>
+						</div>
+					</div>
+
+					<!-- Options Toggles -->
+					<div class="control-group">
+						<label class="group-label">Options</label>
+						<div class="toggle-option">
+							<label class="switch-container">
+								<input type="checkbox" id="enlarge-toggle" checked />
+								<span class="switch-slider"></span>
+							</label>
+							<div class="toggle-text">
+								<span class="toggle-title">Do not enlarge if smaller</span>
+								<span class="toggle-desc">Prevents output dimensions from exceeding the original image size</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Export Format & Quality -->
+					<div class="control-group">
+						<label class="group-label">Export Format</label>
+						<div class="format-quality-row">
+							<div class="input-field format-field">
+								<select id="format-select">
+									<option value="image/png">PNG</option>
+									<option value="image/jpeg">JPEG</option>
+									<option value="image/webp">WebP</option>
+								</select>
+							</div>
+							<div id="quality-container" class="quality-field hidden">
+								<div class="quality-header">
+									<label for="quality-range">Quality</label>
+									<span id="quality-val">90%</span>
+								</div>
+								<input type="range" id="quality-range" min="10" max="100" value="90" />
+							</div>
+						</div>
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="actions-group">
+						<button id="reset-btn" class="btn btn-tertiary">Reset</button>
+						<button id="download-btn" class="btn btn-primary btn-large">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+								<polyline points="7 10 12 15 17 10"></polyline>
+								<line x1="12" y1="15" x2="12" y2="3"></line>
 							</svg>
-							<svg id="unlock-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-								<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-							</svg>
+							Resize & Download
 						</button>
+					</div>
+				</div>
 
-						<div class="input-field">
-							<label for="height-input">Height</label>
-							<div class="input-with-unit">
-								<input type="number" id="height-input" min="1" placeholder="Height" />
-								<span class="unit">px</span>
+				<!-- Crop Controls Mode -->
+				<div id="crop-controls" class="crop-controls hidden">
+					<h3 class="panel-title">Crop Settings</h3>
+
+					<!-- Aspect Ratio Presets -->
+					<div class="control-group">
+						<label class="group-label">Aspect Ratio Presets</label>
+						<div class="crop-presets-grid">
+							<button type="button" class="crop-preset-btn active" data-ratio="free">
+								<span class="preset-name">Freeform</span>
+								<span class="preset-sub">Custom</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="1:1">
+								<span class="preset-name">1:1</span>
+								<span class="preset-sub">Square</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="4:5">
+								<span class="preset-name">4:5</span>
+								<span class="preset-sub">Portrait</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="16:9">
+								<span class="preset-name">16:9</span>
+								<span class="preset-sub">Landscape</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="9:16">
+								<span class="preset-name">9:16</span>
+								<span class="preset-sub">Story / Reel</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="4:3">
+								<span class="preset-name">4:3</span>
+								<span class="preset-sub">Standard</span>
+							</button>
+							<button type="button" class="crop-preset-btn" data-ratio="3:2">
+								<span class="preset-name">3:2</span>
+								<span class="preset-sub">Classic</span>
+							</button>
+						</div>
+					</div>
+
+					<!-- Selection Dimensions Box -->
+					<div class="control-group">
+						<label class="group-label">Selection Dimensions</label>
+						<div class="crop-dims-card">
+							<div class="crop-dim-item">
+								<span class="crop-dim-label">Width</span>
+								<span id="crop-box-w" class="crop-dim-val">0 px</span>
+							</div>
+							<div class="crop-dim-divider">×</div>
+							<div class="crop-dim-item">
+								<span class="crop-dim-label">Height</span>
+								<span id="crop-box-h" class="crop-dim-val">0 px</span>
+							</div>
+							<div class="crop-dim-item">
+								<span class="crop-dim-label">Ratio</span>
+								<span id="crop-box-ratio" class="crop-dim-val">Custom</span>
 							</div>
 						</div>
+						<p class="crop-helper-hint">
+							Drag corners or handles on the image to position and resize your custom crop box.
+						</p>
 					</div>
-				</div>
 
-				<!-- Quick Scale Presets -->
-				<div class="control-group">
-					<label class="group-label">Quick Presets</label>
-					<div class="presets-row">
-						<button class="preset-btn" data-scale="0.25">25%</button>
-						<button class="preset-btn" data-scale="0.5">50%</button>
-						<button class="preset-btn" data-scale="0.75">75%</button>
-						<button class="preset-btn active" data-scale="1">100%</button>
-						<button class="preset-btn" data-scale="1.5" id="preset-150">150%</button>
-						<button class="preset-btn" data-scale="2" id="preset-200">200%</button>
+					<!-- Crop Action Buttons -->
+					<div class="actions-group crop-actions-group">
+						<button type="button" id="cancel-crop-btn" class="btn btn-secondary">
+							Cancel
+						</button>
+						<button type="button" id="reset-crop-box-btn" class="btn btn-tertiary">
+							Reset
+						</button>
+						<button type="button" id="apply-crop-btn" class="btn btn-primary btn-large">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<polyline points="20 6 9 17 4 12"></polyline>
+							</svg>
+							Apply Crop
+						</button>
 					</div>
-				</div>
-
-				<!-- Options Toggles -->
-				<div class="control-group">
-					<label class="group-label">Options</label>
-					<div class="toggle-option">
-						<label class="switch-container">
-							<input type="checkbox" id="enlarge-toggle" checked />
-							<span class="switch-slider"></span>
-						</label>
-						<div class="toggle-text">
-							<span class="toggle-title">Do not enlarge if smaller</span>
-							<span class="toggle-desc">Prevents output dimensions from exceeding the original image size</span>
-						</div>
-					</div>
-				</div>
-
-				<!-- Export Format & Quality -->
-				<div class="control-group">
-					<label class="group-label">Export Format</label>
-					<div class="format-quality-row">
-						<div class="input-field format-field">
-							<select id="format-select">
-								<option value="image/png">PNG</option>
-								<option value="image/jpeg">JPEG</option>
-								<option value="image/webp">WebP</option>
-							</select>
-						</div>
-						<div id="quality-container" class="quality-field hidden">
-							<div class="quality-header">
-								<label for="quality-range">Quality</label>
-								<span id="quality-val">90%</span>
-							</div>
-							<input type="range" id="quality-range" min="10" max="100" value="90" />
-						</div>
-					</div>
-				</div>
-
-				<!-- Action Buttons -->
-				<div class="actions-group">
-					<button id="reset-btn" class="btn btn-tertiary">Reset</button>
-					<button id="download-btn" class="btn btn-primary btn-large">
-						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-							<polyline points="7 10 12 15 17 10"></polyline>
-							<line x1="12" y1="15" x2="12" y2="3"></line>
-						</svg>
-						Resize & Download
-					</button>
 				</div>
 			</div>
 
-			<!-- Right Panel: Preview -->
+			<!-- Right Panel: Preview / Crop Stage -->
 			<div class="preview-panel card">
-				<h3 class="panel-title">Preview</h3>
-				<div class="preview-stage">
+				<h3 class="panel-title" id="preview-panel-title">Preview</h3>
+				
+				<!-- Preview Stage -->
+				<div class="preview-stage" id="preview-stage">
 					<div id="preview-loader" class="preview-loader hidden">
 						<div class="spinner"></div>
 						<span>Rendering preview...</span>
@@ -159,8 +260,16 @@
 						<img id="preview-img" alt="Resized image preview" />
 					</div>
 				</div>
+
+				<!-- Crop Stage -->
+				<div class="crop-stage hidden" id="crop-stage">
+					<div class="cropper-wrapper">
+						<img id="cropper-img" alt="Image to crop" />
+					</div>
+				</div>
+
 				<!-- Summary Cards -->
-				<div class="summary-cards">
+				<div class="summary-cards" id="summary-cards">
 					<div class="summary-card">
 						<span class="summary-label">Target Size</span>
 						<span id="target-dimensions-badge" class="summary-value">0 × 0 px</span>
@@ -298,6 +407,15 @@
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-color);
 		box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+		flex-wrap: wrap;
+		gap: 0.75em;
+	}
+
+	.file-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		flex-wrap: wrap;
 	}
 
 	.file-details {
@@ -752,9 +870,170 @@
 		font-weight: 700;
 		color: var(--text-main);
 	}
+
+	/* Crop Controls & Presets */
+	.resize-controls,
+	.crop-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25em;
+	}
+
+	.crop-presets-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+		gap: 0.5em;
+	}
+
+	.crop-preset-btn {
+		background: #f8fafc;
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-sm);
+		padding: 0.5em 0.25em;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		color: var(--text-main);
+	}
+
+	.crop-preset-btn:hover {
+		background: #f1f5f9;
+		border-color: #cbd5e1;
+	}
+
+	.crop-preset-btn.active {
+		background: #e0e7ff;
+		border-color: var(--accent-color);
+		color: var(--accent-color);
+		font-weight: 700;
+	}
+
+	.crop-preset-btn .preset-name {
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+
+	.crop-preset-btn .preset-sub {
+		font-size: 0.68rem;
+		color: var(--text-muted);
+	}
+
+	.crop-preset-btn.active .preset-sub {
+		color: var(--accent-color);
+	}
+
+	.crop-dims-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+		background: #f8fafc;
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-sm);
+		padding: 0.75em 0.5em;
+	}
+
+	.crop-dim-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.2em;
+	}
+
+	.crop-dim-label {
+		font-size: 0.72rem;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.crop-dim-val {
+		font-size: 0.92rem;
+		font-weight: 700;
+		color: var(--text-main);
+	}
+
+	.crop-dim-divider {
+		font-size: 1.1rem;
+		color: var(--text-muted);
+		font-weight: 300;
+	}
+
+	.crop-helper-hint {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+		margin: 0.2em 0 0;
+		line-height: 1.4;
+	}
+
+	.crop-actions-group {
+		display: flex;
+		gap: 0.5em;
+		margin-top: 0.5em;
+	}
+
+	/* Crop Stage */
+	.crop-stage {
+		flex: 1;
+		min-height: 280px;
+		max-height: 420px;
+		background: #0f172a;
+		border-radius: var(--radius-sm);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.cropper-wrapper {
+		width: 100%;
+		height: 100%;
+		max-height: 420px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.cropper-wrapper img {
+		display: block;
+		max-width: 100%;
+		max-height: 400px;
+	}
+
+	/* Cropper.js visual theme overrides */
+	.crop-stage :global(.cropper-container) {
+		width: 100% !important;
+		height: 100% !important;
+		max-height: 420px !important;
+	}
+
+	.crop-stage :global(.cropper-view-box) {
+		outline: 2px solid #6366f1 !important;
+	}
+
+	.crop-stage :global(.cropper-line) {
+		background-color: #6366f1 !important;
+	}
+
+	.crop-stage :global(.cropper-point) {
+		background-color: #6366f1 !important;
+		width: 8px !important;
+		height: 8px !important;
+		border-radius: 2px !important;
+	}
+
+	.crop-stage :global(.cropper-point.point-se) {
+		width: 11px !important;
+		height: 11px !important;
+	}
 </style>
 
 <script>
+	import Cropper from 'cropperjs';
+
 	// Image Resizer Client-side Logic
 	document.addEventListener('DOMContentLoaded', () => {
 		const dropzone = document.getElementById('dropzone') as HTMLDivElement;
@@ -764,7 +1043,24 @@
 		const fileNameEl = document.getElementById('file-name') as HTMLHeadingElement;
 		const originalMetaEl = document.getElementById('original-meta') as HTMLParagraphElement;
 		const changeImageBtn = document.getElementById('change-image-btn') as HTMLButtonElement;
+		const openCropBtn = document.getElementById('open-crop-btn') as HTMLButtonElement;
+		const revertOriginalBtn = document.getElementById('revert-original-btn') as HTMLButtonElement;
 
+		const resizeControls = document.getElementById('resize-controls') as HTMLDivElement;
+		const cropControls = document.getElementById('crop-controls') as HTMLDivElement;
+		const cropPresetBtns = document.querySelectorAll('.crop-preset-btn') as NodeListOf<HTMLButtonElement>;
+		const cropBoxW = document.getElementById('crop-box-w') as HTMLSpanElement;
+		const cropBoxH = document.getElementById('crop-box-h') as HTMLSpanElement;
+		const cropBoxRatio = document.getElementById('crop-box-ratio') as HTMLSpanElement;
+		const cancelCropBtn = document.getElementById('cancel-crop-btn') as HTMLButtonElement;
+		const resetCropBoxBtn = document.getElementById('reset-crop-box-btn') as HTMLButtonElement;
+		const applyCropBtn = document.getElementById('apply-crop-btn') as HTMLButtonElement;
+
+		const previewPanelTitle = document.getElementById('preview-panel-title') as HTMLHeadingElement;
+		const previewStage = document.getElementById('preview-stage') as HTMLDivElement;
+		const cropStage = document.getElementById('crop-stage') as HTMLDivElement;
+		const cropperImg = document.getElementById('cropper-img') as HTMLImageElement;
+		const summaryCards = document.getElementById('summary-cards') as HTMLDivElement;
 
 		const widthInput = document.getElementById('width-input') as HTMLInputElement;
 		const heightInput = document.getElementById('height-input') as HTMLInputElement;
@@ -794,6 +1090,12 @@
 
 		// State Variables
 		let loadedImage: HTMLImageElement | null = null;
+		let initialOriginalImage: HTMLImageElement | null = null;
+		let initialOriginalWidth = 0;
+		let initialOriginalHeight = 0;
+		let initialOriginalFileSize = 0;
+		let cropperInstance: Cropper | null = null;
+
 		let originalWidth = 0;
 		let originalHeight = 0;
 		let originalAspectRatio = 1;
@@ -842,9 +1144,12 @@
 		});
 
 		changeImageBtn.addEventListener('click', () => {
+			exitCropMode();
 			fileInput.value = '';
 			workspace.classList.add('hidden');
 			dropzone.classList.remove('hidden');
+			revertOriginalBtn.classList.add('hidden');
+			initialOriginalImage = null;
 		});
 
 		// File load handler
@@ -862,6 +1167,11 @@
 				const img = new Image();
 				img.onload = () => {
 					loadedImage = img;
+					initialOriginalImage = img;
+					initialOriginalWidth = img.width;
+					initialOriginalHeight = img.height;
+					initialOriginalFileSize = file.size;
+
 					originalWidth = img.width;
 					originalHeight = img.height;
 					originalAspectRatio = originalWidth / originalHeight;
@@ -869,12 +1179,14 @@
 					// Update File Info
 					fileNameEl.textContent = originalFileName;
 					originalMetaEl.textContent = `${originalWidth} × ${originalHeight} px • ${formatBytes(originalFileSize)}`;
+					revertOriginalBtn.classList.add('hidden');
 
 					// Populate inputs
 					widthInput.value = originalWidth.toString();
 					heightInput.value = originalHeight.toString();
 
 					// Show workspace
+					exitCropMode();
 					dropzone.classList.add('hidden');
 					workspace.classList.remove('hidden');
 
@@ -885,6 +1197,174 @@
 			};
 			reader.readAsDataURL(file);
 		}
+
+		// Crop Mode Handlers
+		function enterCropMode() {
+			if (!loadedImage) return;
+
+			resizeControls.classList.add('hidden');
+			cropControls.classList.remove('hidden');
+			previewStage.classList.add('hidden');
+			cropStage.classList.remove('hidden');
+			summaryCards.classList.add('hidden');
+			previewPanelTitle.textContent = 'Crop Image';
+
+			// Reset presets to freeform
+			cropPresetBtns.forEach(b => b.classList.toggle('active', b.dataset.ratio === 'free'));
+
+			cropperImg.src = loadedImage.src;
+
+			const initCropper = () => {
+				if (cropperInstance) {
+					cropperInstance.destroy();
+					cropperInstance = null;
+				}
+
+				cropperInstance = new Cropper(cropperImg, {
+					viewMode: 1,
+					dragMode: 'crop',
+					aspectRatio: NaN,
+					autoCropArea: 0.9,
+					restore: false,
+					guides: true,
+					center: true,
+					highlight: true,
+					cropBoxMovable: true,
+					cropBoxResizable: true,
+					toggleDragModeOnDblclick: false,
+					crop(event) {
+						const data = event.detail;
+						const w = Math.round(data.width);
+						const h = Math.round(data.height);
+						cropBoxW.textContent = `${w} px`;
+						cropBoxH.textContent = `${h} px`;
+						if (w > 0 && h > 0) {
+							const gcdVal = gcd(w, h);
+							const rw = Math.round(w / gcdVal);
+							const rh = Math.round(h / gcdVal);
+							cropBoxRatio.textContent = (rw < 50 && rh < 50) ? `${rw}:${rh}` : `${(w / h).toFixed(2)}:1`;
+						}
+					}
+				});
+			};
+
+			if (cropperImg.complete) {
+				initCropper();
+			} else {
+				cropperImg.onload = initCropper;
+			}
+		}
+
+		function exitCropMode() {
+			if (cropperInstance) {
+				cropperInstance.destroy();
+				cropperInstance = null;
+			}
+			cropControls.classList.add('hidden');
+			resizeControls.classList.remove('hidden');
+			cropStage.classList.add('hidden');
+			previewStage.classList.remove('hidden');
+			summaryCards.classList.remove('hidden');
+			previewPanelTitle.textContent = 'Preview';
+		}
+
+		openCropBtn.addEventListener('click', enterCropMode);
+
+		cancelCropBtn.addEventListener('click', exitCropMode);
+
+		resetCropBoxBtn.addEventListener('click', () => {
+			cropperInstance?.reset();
+		});
+
+		cropPresetBtns.forEach(btn => {
+			btn.addEventListener('click', () => {
+				cropPresetBtns.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+
+				if (!cropperInstance) return;
+
+				const ratio = btn.dataset.ratio;
+				switch (ratio) {
+					case '1:1':
+						cropperInstance.setAspectRatio(1);
+						break;
+					case '4:5':
+						cropperInstance.setAspectRatio(4 / 5);
+						break;
+					case '16:9':
+						cropperInstance.setAspectRatio(16 / 9);
+						break;
+					case '9:16':
+						cropperInstance.setAspectRatio(9 / 16);
+						break;
+					case '4:3':
+						cropperInstance.setAspectRatio(4 / 3);
+						break;
+					case '3:2':
+						cropperInstance.setAspectRatio(3 / 2);
+						break;
+					case 'free':
+					default:
+						cropperInstance.setAspectRatio(NaN);
+						break;
+				}
+			});
+		});
+
+		applyCropBtn.addEventListener('click', () => {
+			if (!cropperInstance) return;
+
+			const croppedCanvas = cropperInstance.getCroppedCanvas({
+				imageSmoothingEnabled: true,
+				imageSmoothingQuality: 'high',
+			});
+
+			if (!croppedCanvas) return;
+
+			const mimeType = formatSelect.value || 'image/png';
+			const quality = parseInt(qualityRange.value) / 100;
+			const croppedDataUrl = croppedCanvas.toDataURL(mimeType, quality);
+
+			exitCropMode();
+
+			const croppedImg = new Image();
+			croppedImg.onload = () => {
+				loadedImage = croppedImg;
+				originalWidth = croppedImg.width;
+				originalHeight = croppedImg.height;
+				originalAspectRatio = originalWidth / originalHeight;
+
+				originalMetaEl.textContent = `${originalWidth} × ${originalHeight} px • Cropped`;
+				revertOriginalBtn.classList.remove('hidden');
+
+				widthInput.value = originalWidth.toString();
+				heightInput.value = originalHeight.toString();
+
+				updateEnlargePresetStates();
+				updateActivePresetButton();
+				updatePreview();
+			};
+			croppedImg.src = croppedDataUrl;
+		});
+
+		revertOriginalBtn.addEventListener('click', () => {
+			if (!initialOriginalImage) return;
+
+			loadedImage = initialOriginalImage;
+			originalWidth = initialOriginalWidth;
+			originalHeight = initialOriginalHeight;
+			originalAspectRatio = originalWidth / originalHeight;
+
+			originalMetaEl.textContent = `${originalWidth} × ${originalHeight} px • ${formatBytes(initialOriginalFileSize)}`;
+			revertOriginalBtn.classList.add('hidden');
+
+			widthInput.value = originalWidth.toString();
+			heightInput.value = originalHeight.toString();
+
+			updateEnlargePresetStates();
+			updateActivePresetButton();
+			updatePreview();
+		});
 
 		// Aspect Ratio Lock Toggle
 		lockAspectBtn.addEventListener('click', () => {
